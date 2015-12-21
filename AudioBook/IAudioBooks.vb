@@ -27,11 +27,12 @@ Public Interface IAudioBooks
     <WebInvoke(Method:="GET", ResponseFormat:=WebMessageFormat.Json, BodyStyle:=WebMessageBodyStyle.Wrapped, UriTemplate:="GetAudioBookDetail?Session={Session}&Id={Id}")>
     Function GetAudioBookDetail(Session As String, Id As Integer) As AudioBook.NuevaLuz.AudioBooks.AudioBook
 
-    '' Trabajo mio
-    '<OperationContract()>
-    '<WebInvoke(Method:="GET", ResponseFormat:=WebMessageFormat.Json, BodyStyle:=WebMessageBodyStyle.Wrapped, UriTemplate:="GetAuthors?Session={Session}&Index={Index}&Count={Count}")>
-    'Function Autores(Session As String, Index As Integer, Count As Integer) As AuthorsResult
+    <OperationContract>
+    <WebInvoke(Method:="GET", ResponseFormat:=WebMessageFormat.Json, BodyStyle:=WebMessageBodyStyle.Wrapped, UriTemplate:="SearchTitles?Session={Session}&Text={Text}&Index={Index}&Count={Count}")>
+    Function SearchTitles(Session As String, Text As String, Index As Integer, Count As Integer) As TitlesResult
 
-
+    <OperationContract>
+    <WebInvoke(Method:="GET", ResponseFormat:=WebMessageFormat.Json, BodyStyle:=WebMessageBodyStyle.Wrapped, UriTemplate:="SearchAuthors?Session={Session}&Text={Text}&Index={Index}&Count={Count}")>
+    Function SearchAuthors(Session As String, Text As String, Index As Integer, Count As Integer) As AuthorsResult
 End Interface
 

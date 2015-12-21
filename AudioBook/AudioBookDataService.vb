@@ -12,6 +12,11 @@ Namespace NuevaLuz.AudioBooks
             "AND LH_formatosdisponibles.activo = 'True' AND LH_audioteca.activo = 'True' " & _
             ") AS tbl WHERE idx BETWEEN @start AND @end "
 
+        Private queryTitlesSearch As String = "SELECT * FROM (SELECT ROW_NUMBER() OVER(ORDER BY titulo) AS idx, LH_audioteca.id, LH_audioteca.titulo, LH_audioteca.numero " &
+            "FROM LH_audioteca, LH_formatosdisponibles " &
+            "WHERE LH_audioteca.id = LH_formatosdisponibles.id_audioteca AND LH_formatosdisponibles.id_formato = 4 " &
+            "AND LH_formatosdisponibles.activo = 'True' AND LH_audioteca.activo = 'True' AND LH_audioteca.titulo LIKE CONCAT('%', @text ,'%') " &
+            ") AS tbl WHERE idx BETWEEN @start AND @end "
 
         Private queryBooks As String = "SELECT * FROM (SELECT ROW_NUMBER() OVER(ORDER BY titulo) AS idx, " &
             "LHA.id, LHA.titulo, LHA.comentario, LHA.id_autor, LHA.horas, LHA.minutos, SIA.nombre 'autor', SIE.nombre 'editorial' " &
@@ -42,8 +47,18 @@ Namespace NuevaLuz.AudioBooks
             "WHERE LHF.id_formato=4 AND LHF.activo='True' AND LHA.activo='True') AS tbl " &
             "WHERE idx BETWEEN @start AND @end "
 
+        Private queryAuthorsSearch As String = "SELECT * FROM (SELECT ROW_NUMBER() OVER(ORDER BY nombre) AS idx, id, nombre " &
+            "FROM SI_autores SIA" &
+            "INNER JOIN LH_audioteca LHA ON LHA.id_autor=SIA.id " &
+            "INNER JOIN LH_formatosdisponibles LHF on LHF.id_audioteca = LHA.id " &
+            "WHERE LHF.id_formato=4 AND LHF.activo='True' AND LHA.activo='True' AND SIA.nombre Like CONCAT('%', @text ,'%')) AS tbl " &
+            "WHERE idx BETWEEN @start AND @end "
+
         Private queryBooksCount As String = "SELECT count(*) FROM LH_audioteca, LH_formatosdisponibles " &
             "WHERE LH_audioteca.id = LH_formatosdisponibles.id_audioteca AND LH_formatosdisponibles.id_formato = 4 AND LH_formatosdisponibles.activo = 'True' AND LH_audioteca.activo = 'True'"
+
+        Private queryBooksCountSearch As String = "SELECT count(*) FROM LH_audioteca, LH_formatosdisponibles " &
+            "WHERE LH_audioteca.id = LH_formatosdisponibles.id_audioteca AND LH_formatosdisponibles.id_formato = 4 AND LH_formatosdisponibles.activo = 'True' AND LH_audioteca.activo = 'True' AND LH_audioteca.titulo LIKE CONCAT('%', @text ,'%')"
 
         Private queryBooksCountByAuthor As String = "SELECT count(*) FROM LH_audioteca, LH_formatosdisponibles " &
             "WHERE LH_audioteca.id = LH_formatosdisponibles.id_audioteca AND LH_formatosdisponibles.id_formato = 4 AND LH_formatosdisponibles.activo = 'True' AND LH_audioteca.activo = 'True' AND id_autor=@Id "
@@ -53,6 +68,12 @@ Namespace NuevaLuz.AudioBooks
             "INNER JOIN LH_audioteca LHA On LHA.id_autor=SIA.id " &
             "INNER JOIN LH_formatosdisponibles LHF On LHF.id_audioteca = LHA.id " &
             "WHERE LHF.id_formato=4 And LHF.activo='True' AND LHA.activo='True' "
+
+        Private queryAuthorsCountSearch As String = "SELECT count(*) " &
+            "FROM SI_autores SIA" &
+            "INNER JOIN LH_audioteca LHA On LHA.id_autor=SIA.id " &
+            "INNER JOIN LH_formatosdisponibles LHF On LHF.id_audioteca = LHA.id " &
+            "WHERE LHF.id_formato=4 And LHF.activo='True' AND LHA.activo='True' AND SIA.nombre LIKE CONCAT('%', @text ,'%')"
 
         Private queryAuthenticate As String = "SELECT contrasena FROM US_usuarios WHERE id=@id "
 
@@ -159,6 +180,47 @@ Namespace NuevaLuz.AudioBooks
             End If
         End Function
 
+        Public Function SearchTitles(Text As String, Index As Integer, Count As Integer) As TitlesResult
+            Dim Result As New TitlesResult()
+            Result.Titles = New List(Of Title)()
+
+            ' Total authors
+            Dim count__2 As DataTable = ExecuteSelectCommand(queryBooksCountSearch, CommandType.Text)
+            If count__2.Rows.Count > 0 Then
+                Result.Total = Int32.Parse(count__2.Rows(0)(0).ToString())
+            End If
+
+            Dim titles As DataTable = ExecuteParamerizedSelectCommand(queryTitlesSearch, CommandType.Text, New SqlParameter() {New SqlParameter("text", Text), New SqlParameter("start", Index), New SqlParameter("end", Index + Count - 1)})
+
+            For Each row As DataRow In titles.Rows
+                Result.Titles.Add(Title.FromDataRow(row))
+            Next
+
+            Return Result
+
+        End Function
+
+        Public Function SearchAuthors(Text As String, Index As Integer, Count As Integer) As AuthorsResult
+            Dim Result As New AuthorsResult()
+            Result.Authors = New List(Of Author)()
+
+            ' Total authors
+            Dim count__2 As DataTable = ExecuteSelectCommand(queryAuthorsCountSearch, CommandType.Text)
+            If count__2.Rows.Count > 0 Then
+                Result.Total = Int32.Parse(count__2.Rows(0)(0).ToString())
+            End If
+
+            ' Get Authors
+            Dim authors As DataTable = ExecuteParamerizedSelectCommand(queryAuthorsSearch, CommandType.Text, New SqlParameter() {New SqlParameter("text", Text), New SqlParameter("start", Index), New SqlParameter("end", Index + Count - 1)})
+
+            For Each row As DataRow In authors.Rows
+                Result.Authors.Add(Author.FromDataRow(row))
+            Next
+
+            Return Result
+
+        End Function
+
         Private Function ExecuteSelectCommand(CommandName As String, cmdType As CommandType) As DataTable
             Dim cmd As SqlCommand = Nothing
             Dim table As New DataTable()
@@ -211,28 +273,6 @@ Namespace NuevaLuz.AudioBooks
 
             Return table
         End Function
-
-
-        ''TRABAJO MIO
-        'Public Function Autores(Index As Integer, Count__1 As Integer) As AutorResultado
-        '    Dim Result As New AuthorsResult()
-        '    Result.Authors = New List(Of Author)()
-
-        '    ' Total authors
-        '    Dim count__2 As DataTable = ExecuteSelectCommand(queryAuthorsCount, CommandType.Text)
-        '    If count__2.Rows.Count > 0 Then
-        '        Result.Total = Int32.Parse(count__2.Rows(0)(0).ToString())
-        '    End If
-
-        '    ' Get Authors
-        '    Dim authors As DataTable = ExecuteParamerizedSelectCommand(queryAuthors, CommandType.Text, New SqlParameter() {New SqlParameter("start", Index), New SqlParameter("end", Index + Count__1 - 1)})
-
-        '    For Each row As DataRow In authors.Rows
-        '        Result.Authors.Add(Author.FromDataRow(row))
-        '    Next
-
-        '    Return Result
-        'End Function
 
     End Class
 End Namespace

@@ -65,21 +65,22 @@ Namespace NuevaLuz.AudioBooks
             Return audioBooksDataService.GetAudioBookDetails(Id)
         End Function
 
+        Public Function SearchTitles(Session As String, Text As String, Index As Integer, Count As Integer) As TitlesResult Implements IAudioBooks.SearchTitles
+            If Not authService.ValidateSession(Session) Then
+                Throw New HttpException(CInt(HttpStatusCode.Unauthorized), "Acceso denegado")
+            End If
 
+            Return audioBooksDataService.SearchTitles(Text, Index, Count)
 
+        End Function
 
-        ''Trabajo mio
-        'Private Function IAudioBooks_Autores(Session As String, Index As Integer, Count As Integer) As AutorResultado Implements IAudioBooks.Autores
-        '    If Not authService.ValidateSession(Session) Then
-        '        Throw New HttpException(CInt(HttpStatusCode.Unauthorized), "Acceso denegado")
-        '    End If
+        Public Function SearchAuthors(Session As String, Text As String, Index As Integer, Count As Integer) As AuthorsResult Implements IAudioBooks.SearchAuthors
+            If Not authService.ValidateSession(Session) Then
+                Throw New HttpException(CInt(HttpStatusCode.Unauthorized), "Acceso denegado")
+            End If
 
-        '    Return audioBooksDataService.Autores(Index, Count)
-        'End Function
-
-
-
-
+            Return audioBooksDataService.SearchAuthors(Text, Index, Count)
+        End Function
 
     End Class
 End Namespace
