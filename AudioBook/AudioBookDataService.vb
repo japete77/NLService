@@ -15,8 +15,8 @@ Namespace NuevaLuz.AudioBooks
         Private queryTitlesSearch As String = "SELECT * FROM (SELECT ROW_NUMBER() OVER(ORDER BY titulo) AS idx, LH_audioteca.id, LH_audioteca.titulo, LH_audioteca.numero " &
             "FROM LH_audioteca, LH_formatosdisponibles " &
             "WHERE LH_audioteca.id = LH_formatosdisponibles.id_audioteca AND LH_formatosdisponibles.id_formato = 4 " &
-            "AND LH_formatosdisponibles.activo = 'True' AND LH_audioteca.activo = 'True' AND LH_audioteca.titulo LIKE CONCAT('%', @text ,'%') " &
-            ") AS tbl WHERE idx BETWEEN @start AND @end "
+            "AND LH_formatosdisponibles.activo = 'True' AND LH_audioteca.activo = 'True' AND LH_audioteca.titulo LIKE '%' + @text + '%') AS tbl " &
+            "WHERE idx BETWEEN @start AND @end "
 
         Private queryBooks As String = "SELECT * FROM (SELECT ROW_NUMBER() OVER(ORDER BY titulo) AS idx, " &
             "LHA.id, LHA.titulo, LHA.comentario, LHA.id_autor, LHA.horas, LHA.minutos, SIA.nombre 'autor', SIE.nombre 'editorial' " &
@@ -30,7 +30,7 @@ Namespace NuevaLuz.AudioBooks
         Private queryTitlesByAuthor As String = "SELECT * FROM (SELECT ROW_NUMBER() OVER(ORDER BY titulo) AS idx, LHA.id, LHA.titulo " &
             "FROM LH_audioteca LHA " &
             "INNER JOIN LH_formatosdisponibles LHF on LHF.id_audioteca = LHA.id " &
-            "WHERE LHF.id_formato=4 AND LHF.activo='True' AND LHA.activo='True' AND and LHA.id_autor=@id) AS tbl " &
+            "WHERE LHF.id_formato=4 AND LHF.activo='True' AND LHA.activo='True' AND LHA.id_autor=@id) AS tbl " &
             "WHERE idx BETWEEN @start AND @end "
 
         Private queryBooksById As String = "SELECT LHA.id, LHA.titulo, LHA.comentario, LHA.id_autor, LHA.horas, LHA.minutos, " &
@@ -40,40 +40,54 @@ Namespace NuevaLuz.AudioBooks
             "INNER JOIN SI_editoriales SIE ON SIE.id = LHA.id_editorial " &
             "WHERE LHA.activo=1 AND LHA.id=@id "
 
-        Private queryAuthors As String = "SELECT * FROM (SELECT ROW_NUMBER() OVER(ORDER BY nombre) AS idx, id, nombre " &
-            "FROM SI_autores SIA" &
-            "INNER JOIN LH_audioteca LHA ON LHA.id_autor=SIA.id " &
+        Private queryAuthors As String = "SELECT * FROM (SELECT ROW_NUMBER() OVER(ORDER BY nombre) AS idx, SIA.id, SIA.nombre " &
+            "FROM SI_autores SIA " &
+            "WHERE SIA.id IN ( " &
+            "SELECT DISTINCT(LHA.id_autor) id " &
+            "FROM LH_audioteca LHA " &
+            "INNER JOIN SI_autores SIA ON SIA.id = LHA.id_autor " &
             "INNER JOIN LH_formatosdisponibles LHF on LHF.id_audioteca = LHA.id " &
-            "WHERE LHF.id_formato=4 AND LHF.activo='True' AND LHA.activo='True') AS tbl " &
+            "WHERE LHF.id_formato=4 AND LHF.activo='True' AND LHA.activo='True')) as tbl " &
             "WHERE idx BETWEEN @start AND @end "
 
-        Private queryAuthorsSearch As String = "SELECT * FROM (SELECT ROW_NUMBER() OVER(ORDER BY nombre) AS idx, id, nombre " &
-            "FROM SI_autores SIA" &
-            "INNER JOIN LH_audioteca LHA ON LHA.id_autor=SIA.id " &
+        Private queryAuthorsSearch As String = "SELECT * FROM (SELECT ROW_NUMBER() OVER(ORDER BY nombre) AS idx, SIA.id, SIA.nombre " &
+            "FROM SI_autores SIA " &
+            "WHERE SIA.nombre LIKE '%' + @text + '%' AND SIA.id IN ( " &
+            "SELECT DISTINCT(LHA.id_autor) id " &
+            "FROM LH_audioteca LHA " &
+            "INNER JOIN SI_autores SIA ON SIA.id = LHA.id_autor " &
             "INNER JOIN LH_formatosdisponibles LHF on LHF.id_audioteca = LHA.id " &
-            "WHERE LHF.id_formato=4 AND LHF.activo='True' AND LHA.activo='True' AND SIA.nombre Like CONCAT('%', @text ,'%')) AS tbl " &
+            "WHERE LHF.id_formato=4 AND LHF.activo='True' AND LHA.activo='True')) as tbl " &
             "WHERE idx BETWEEN @start AND @end "
+
+        Private queryAuthorsCountSearch As String = "SELECT count(*) " &
+            "FROM SI_autores SIA " &
+            "WHERE SIA.nombre LIKE '%' + @text + '%' AND SIA.id IN ( " &
+            "SELECT DISTINCT(LHA.id_autor) id " &
+            "FROM LH_audioteca LHA " &
+            "INNER JOIN SI_autores SIA ON SIA.id = LHA.id_autor " &
+            "INNER JOIN LH_formatosdisponibles LHF on LHF.id_audioteca = LHA.id " &
+            "WHERE LHF.id_formato=4 AND LHF.activo='True' AND LHA.activo='True') "
 
         Private queryBooksCount As String = "SELECT count(*) FROM LH_audioteca, LH_formatosdisponibles " &
             "WHERE LH_audioteca.id = LH_formatosdisponibles.id_audioteca AND LH_formatosdisponibles.id_formato = 4 AND LH_formatosdisponibles.activo = 'True' AND LH_audioteca.activo = 'True'"
 
         Private queryBooksCountSearch As String = "SELECT count(*) FROM LH_audioteca, LH_formatosdisponibles " &
-            "WHERE LH_audioteca.id = LH_formatosdisponibles.id_audioteca AND LH_formatosdisponibles.id_formato = 4 AND LH_formatosdisponibles.activo = 'True' AND LH_audioteca.activo = 'True' AND LH_audioteca.titulo LIKE CONCAT('%', @text ,'%')"
+            "WHERE LH_audioteca.id = LH_formatosdisponibles.id_audioteca AND LH_formatosdisponibles.id_formato = 4 " &
+            "AND LH_formatosdisponibles.activo = 'True' AND LH_audioteca.activo = 'True' AND LH_audioteca.titulo LIKE '%' + @text + '%'"
 
         Private queryBooksCountByAuthor As String = "SELECT count(*) FROM LH_audioteca, LH_formatosdisponibles " &
             "WHERE LH_audioteca.id = LH_formatosdisponibles.id_audioteca AND LH_formatosdisponibles.id_formato = 4 AND LH_formatosdisponibles.activo = 'True' AND LH_audioteca.activo = 'True' AND id_autor=@Id "
 
         Private queryAuthorsCount As String = "SELECT count(*) " &
-            "FROM SI_autores SIA" &
-            "INNER JOIN LH_audioteca LHA On LHA.id_autor=SIA.id " &
-            "INNER JOIN LH_formatosdisponibles LHF On LHF.id_audioteca = LHA.id " &
-            "WHERE LHF.id_formato=4 And LHF.activo='True' AND LHA.activo='True' "
+            "FROM SI_autores SIA " &
+            "WHERE SIA.id IN ( " &
+            "SELECT DISTINCT(LHA.id_autor) id " &
+            "FROM LH_audioteca LHA " &
+            "INNER JOIN SI_autores SIA ON SIA.id = LHA.id_autor " &
+            "INNER JOIN LH_formatosdisponibles LHF on LHF.id_audioteca = LHA.id " &
+            "WHERE LHF.id_formato=4 AND LHF.activo='True' AND LHA.activo='True') "
 
-        Private queryAuthorsCountSearch As String = "SELECT count(*) " &
-            "FROM SI_autores SIA" &
-            "INNER JOIN LH_audioteca LHA On LHA.id_autor=SIA.id " &
-            "INNER JOIN LH_formatosdisponibles LHF On LHF.id_audioteca = LHA.id " &
-            "WHERE LHF.id_formato=4 And LHF.activo='True' AND LHA.activo='True' AND SIA.nombre LIKE CONCAT('%', @text ,'%')"
 
         Private queryAuthenticate As String = "SELECT contrasena FROM US_usuarios WHERE id=@id "
 
@@ -185,7 +199,7 @@ Namespace NuevaLuz.AudioBooks
             Result.Titles = New List(Of Title)()
 
             ' Total authors
-            Dim count__2 As DataTable = ExecuteSelectCommand(queryBooksCountSearch, CommandType.Text)
+            Dim count__2 As DataTable = ExecuteParamerizedSelectCommand(queryBooksCountSearch, CommandType.Text, New SqlParameter() {New SqlParameter("text", Text)})
             If count__2.Rows.Count > 0 Then
                 Result.Total = Int32.Parse(count__2.Rows(0)(0).ToString())
             End If
@@ -205,7 +219,7 @@ Namespace NuevaLuz.AudioBooks
             Result.Authors = New List(Of Author)()
 
             ' Total authors
-            Dim count__2 As DataTable = ExecuteSelectCommand(queryAuthorsCountSearch, CommandType.Text)
+            Dim count__2 As DataTable = ExecuteParamerizedSelectCommand(queryAuthorsCountSearch, CommandType.Text, New SqlParameter() {New SqlParameter("text", Text)})
             If count__2.Rows.Count > 0 Then
                 Result.Total = Int32.Parse(count__2.Rows(0)(0).ToString())
             End If
