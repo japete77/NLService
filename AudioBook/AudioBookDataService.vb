@@ -19,7 +19,7 @@ Namespace NuevaLuz.AudioBooks
             "WHERE idx BETWEEN @start AND @end "
 
         Private queryBooks As String = "SELECT * FROM (SELECT ROW_NUMBER() OVER(ORDER BY titulo) AS idx, " &
-            "LHA.id, LHA.titulo, LHA.comentario, LHA.id_autor, LHA.horas, LHA.minutos, SIA.nombre 'autor', SIE.nombre 'editorial' " &
+            "LHA.id, LHA.titulo, LHA.numero, LHA.comentario, LHA.id_autor, LHA.horas, LHA.minutos, SIA.nombre 'autor', SIE.nombre 'editorial' " &
             "FROM LH_audioteca LHA " &
             "INNER JOIN SI_autores SIA ON SIA.id = LHA.id_autor " &
             "INNER JOIN SI_editoriales SIE ON SIE.id = LHA.id_editorial " &
@@ -27,13 +27,13 @@ Namespace NuevaLuz.AudioBooks
             "WHERE LHF.id_formato=4 AND LHF.activo='True' AND LHA.activo='True') AS tbl " &
             "WHERE idx BETWEEN @start AND @end "
 
-        Private queryTitlesByAuthor As String = "SELECT * FROM (SELECT ROW_NUMBER() OVER(ORDER BY titulo) AS idx, LHA.id, LHA.titulo " &
+        Private queryTitlesByAuthor As String = "SELECT * FROM (SELECT ROW_NUMBER() OVER(ORDER BY titulo) AS idx, LHA.id, LHA.titulo, LHA.numero " &
             "FROM LH_audioteca LHA " &
             "INNER JOIN LH_formatosdisponibles LHF on LHF.id_audioteca = LHA.id " &
             "WHERE LHF.id_formato=4 AND LHF.activo='True' AND LHA.activo='True' AND LHA.id_autor=@id) AS tbl " &
             "WHERE idx BETWEEN @start AND @end "
 
-        Private queryBooksById As String = "SELECT LHA.id, LHA.titulo, LHA.comentario, LHA.id_autor, LHA.horas, LHA.minutos, " &
+        Private queryBooksById As String = "SELECT LHA.id, LHA.titulo, LHA.numero, LHA.comentario, LHA.id_autor, LHA.horas, LHA.minutos, " &
             "SIA.nombre 'autor', SIE.nombre 'editorial' " &
             "FROM LH_audioteca " &
             "LHA INNER JOIN SI_autores SIA ON SIA.id = LHA.id_autor " &
