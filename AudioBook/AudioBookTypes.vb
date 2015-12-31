@@ -146,17 +146,6 @@ Namespace NuevaLuz.AudioBooks
         Private m_Title As String
 
         <DataMember>
-        Public Property Number() As String
-            Get
-                Return m_Number
-            End Get
-            Set
-                m_Number = Value
-            End Set
-        End Property
-        Private m_Number As String
-
-        <DataMember>
         Public Property Author() As Author
             Get
                 Return m_Author
@@ -214,9 +203,8 @@ Namespace NuevaLuz.AudioBooks
         Public Shared Function FromDataRow(Row As DataRow) As AudioBook
             Dim Item As New AudioBook()
 
-            Item.Id = Row("id").ToString().Trim()
+            Item.Id = Row("id").ToString().Trim().PadLeft(4, "0")
             Item.Title = If(Row("titulo") IsNot Nothing, Row("titulo").ToString().Trim(), Nothing)
-            Item.Number = Row("numero").ToString().Trim().PadLeft(4, "0")
             Item.Comments = If(Row("comentario") IsNot Nothing, Row("comentario").ToString().Trim(), Nothing)
             Item.Author = New Author()
             Item.Author.Id = Row("id_autor").ToString().Trim()
