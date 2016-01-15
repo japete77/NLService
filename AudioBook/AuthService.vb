@@ -13,6 +13,10 @@ Public Class AuthService
         Return Session
     End Function
 
+    Public Function GetUsername(Session As String) As String
+        Return sessions.[Get](Session)
+    End Function
+
     Public Function ValidateSession(Session As String) As Boolean
         Dim User = sessions.[Get](Session)
         If User Is Nothing Then

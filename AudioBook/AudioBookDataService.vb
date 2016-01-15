@@ -6,6 +6,10 @@ Namespace NuevaLuz.AudioBooks
 
     Class AudioBookDataService
 
+        Private insertHistoric As String = "INSERT INTO LH_historico (id_usuario, id_audioteca, id_formato, id_estado, " &
+            "f_mibiblioteca, f_pendiente, f_envio, f_devolucion, regalo, gestor_mibiblioteca, gestor_pendiente, gestor_envio," &
+            "gestor_devolucion, web) VALUES (@iduser, @idaudio, 4, 5, @now, @now, @now, @now, 'True', 'MOVIL', 'MOVIL', 'MOVIL', 'MOVIL', 'True')"
+
         Private queryTitles As String = "SELECT * FROM (SELECT ROW_NUMBER() OVER(ORDER BY titulo) AS idx, LH_audioteca.numero 'id', LH_audioteca.titulo " &
             "FROM LH_audioteca, LH_formatosdisponibles " &
             "WHERE LH_audioteca.id = LH_formatosdisponibles.id_audioteca AND LH_formatosdisponibles.id_formato = 4 " &
@@ -235,6 +239,16 @@ Namespace NuevaLuz.AudioBooks
 
         End Function
 
+        Public Function RegisterDownload(User As Integer, IdAudio As Integer) As Integer
+            Dim insertedRows As Integer
+
+            Dim params As SqlParameter() = {New SqlParameter("iduser", User), New SqlParameter("idaudio", IdAudio), New SqlParameter("now", DateTime.Now)}
+
+            insertedRows = ExecuteParamerizedInsertCommand(insertHistoric, CommandType.Text, params)
+
+            Return insertedRows
+        End Function
+
         Private Function ExecuteSelectCommand(CommandName As String, cmdType As CommandType) As DataTable
             Dim cmd As SqlCommand = Nothing
             Dim table As New DataTable()
@@ -288,5 +302,28 @@ Namespace NuevaLuz.AudioBooks
             Return table
         End Function
 
+        Private Function ExecuteParamerizedInsertCommand(CommandName As String, cmdType As CommandType, param As SqlParameter()) As Integer
+            Dim cmd As SqlCommand = Nothing
+
+            cmd = sqlConnection.CreateCommand()
+
+            cmd.CommandType = cmdType
+            cmd.CommandText = CommandName
+            cmd.Parameters.AddRange(param)
+
+            Try
+                sqlConnection.Open()
+                Return cmd.ExecuteNonQuery()
+
+            Catch ex As Exception
+                Throw ex
+
+            Finally
+                cmd.Dispose()
+                cmd = Nothing
+                sqlConnection.Close()
+            End Try
+
+        End Function
     End Class
 End Namespace
