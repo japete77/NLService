@@ -16,7 +16,7 @@ Namespace NuevaLuz.AudioBooks
                     Result.Success = True
                     Result.Session = authService.GetNewSession(Username)
                 Else
-                    Throw New HttpException(CInt(HttpStatusCode.Unauthorized), denyAccess)
+                    Throw New System.ServiceModel.Web.WebFaultException(HttpStatusCode.MethodNotAllowed)
                 End If
             Catch ex As Exception
                 Result.Success = False
@@ -28,7 +28,7 @@ Namespace NuevaLuz.AudioBooks
 
         Private Function IAudioBooks_GetTitles(Session As String, Index As Integer, Count As Integer) As TitlesResult Implements IAudioBooks.GetTitles
             If Not authService.ValidateSession(Session) Then
-                Throw New HttpException(CInt(HttpStatusCode.Unauthorized), denyAccess)
+                Throw New System.ServiceModel.Web.WebFaultException(HttpStatusCode.MethodNotAllowed)
             End If
 
             Return audioBooksDataService.GetTitles(Index, Count)
@@ -36,7 +36,7 @@ Namespace NuevaLuz.AudioBooks
 
         Private Function IAudioBooks_GetBooks(Session As String, Index As Integer, Count As Integer) As AudioBooksResult Implements IAudioBooks.GetBooks
             If Not authService.ValidateSession(Session) Then
-                Throw New HttpException(CInt(HttpStatusCode.Unauthorized), denyAccess)
+                Throw New System.ServiceModel.Web.WebFaultException(HttpStatusCode.MethodNotAllowed)
             End If
 
             Return audioBooksDataService.GetAudioBooks(Index, Count)
@@ -44,7 +44,7 @@ Namespace NuevaLuz.AudioBooks
 
         Private Function IAudioBooks_GetAuthors(Session As String, Index As Integer, Count As Integer) As AuthorsResult Implements IAudioBooks.GetAuthors
             If Not authService.ValidateSession(Session) Then
-                Throw New HttpException(CInt(HttpStatusCode.Unauthorized), denyAccess)
+                Throw New System.ServiceModel.Web.WebFaultException(HttpStatusCode.MethodNotAllowed)
             End If
 
             Return audioBooksDataService.GetAuthors(Index, Count)
@@ -52,7 +52,7 @@ Namespace NuevaLuz.AudioBooks
 
         Private Function IAudioBooks_GetTitlesByAuthor(Session As String, Id As Integer, Index As Integer, Count As Integer) As TitlesResult Implements IAudioBooks.GetTitlesByAuthor
             If Not authService.ValidateSession(Session) Then
-                Throw New HttpException(CInt(HttpStatusCode.Unauthorized), denyAccess)
+                Throw New System.ServiceModel.Web.WebFaultException(HttpStatusCode.MethodNotAllowed)
             End If
 
             Return audioBooksDataService.GetTitlesByAuthor(Id, Index, Count)
@@ -60,7 +60,7 @@ Namespace NuevaLuz.AudioBooks
 
         Private Function IAudioBooks_GetAudioBookDetail(Session As String, Id As Integer) As AudioBook Implements IAudioBooks.GetAudioBookDetail
             If Not authService.ValidateSession(Session) Then
-                Throw New HttpException(CInt(HttpStatusCode.Unauthorized), denyAccess)
+                Throw New System.ServiceModel.Web.WebFaultException(HttpStatusCode.MethodNotAllowed)
             End If
 
             Return audioBooksDataService.GetAudioBookDetails(Id)
@@ -68,7 +68,7 @@ Namespace NuevaLuz.AudioBooks
 
         Public Function SearchTitles(Session As String, Text As String, Index As Integer, Count As Integer) As TitlesResult Implements IAudioBooks.SearchTitles
             If Not authService.ValidateSession(Session) Then
-                Throw New HttpException(CInt(HttpStatusCode.Unauthorized), denyAccess)
+                Throw New System.ServiceModel.Web.WebFaultException(HttpStatusCode.MethodNotAllowed)
             End If
 
             Return audioBooksDataService.SearchTitles(Text, Index, Count)
@@ -77,7 +77,7 @@ Namespace NuevaLuz.AudioBooks
 
         Public Function SearchAuthors(Session As String, Text As String, Index As Integer, Count As Integer) As AuthorsResult Implements IAudioBooks.SearchAuthors
             If Not authService.ValidateSession(Session) Then
-                Throw New HttpException(CInt(HttpStatusCode.Unauthorized), denyAccess)
+                Throw New System.ServiceModel.Web.WebFaultException(HttpStatusCode.MethodNotAllowed)
             End If
 
             Return audioBooksDataService.SearchAuthors(Text, Index, Count)
@@ -85,7 +85,7 @@ Namespace NuevaLuz.AudioBooks
 
         Public Function RegisterDownload(Session As String, IdAudio As String) As Object Implements IAudioBooks.RegisterDownload
             If Not authService.ValidateSession(Session) Then
-                Throw New HttpException(CInt(HttpStatusCode.Unauthorized), denyAccess)
+                Throw New System.ServiceModel.Web.WebFaultException(HttpStatusCode.MethodNotAllowed)
             End If
 
             Return audioBooksDataService.RegisterDownload(CInt(authService.GetUsername(Session)), IdAudio)
